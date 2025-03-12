@@ -1,5 +1,5 @@
 # ML-STIM
-Machine Learning for SubThalamic nucleus Intraoperative Mapping
+**Machine Learning for SubThalamic nucleus Intraoperative Mapping**
 
 <p align="center">
 
