@@ -3,7 +3,7 @@ Machine Learning for SubThalamic nucleus Intraoperative Mapping
 
 <p align="center">
 
-<img  src="https://github.com/Biolab-PoliTO/ML-STIM/blob/main/docs/Figure_1_block_diagram_v2.tif" style="width:100%; height:auto;"/></p>
+<img  src="https://github.com/Biolab-PoliTO/ML-STIM/blob/main/docs/Figure_1.png" style="width:100%; height:auto;"/></p>
 
 Deep Brain Stimulation (DBS) of the SubThalamic Nucleus (STN) is an effective electroceutical therapy for treating motor symptoms in patients with Parkinson’s disease. Accurate placement of the stimulating electrode within the STN is essential for achieving optimal therapeutic outcomes. To this end, MicroElectrode Recordings (MERs) are acquired during surgery to provide intraoperative visual and auditory confirmation of the electrode position.
 
