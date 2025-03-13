@@ -16,24 +16,18 @@ def initialize_filter_coefficients(fsamp):
     notch_freqs = np.arange(150, 5000, 50)
     for freq in notch_freqs:
         b[f'notch_{freq}Hz'], a[f'notch_{freq}Hz'] = signal.iirnotch(freq, 50, fsamp)
-    for key in b:
-        b[key] = torch.tensor(b[key], dtype=torch.float32, device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-    for key in a:
-        a[key] = torch.tensor(a[key], dtype=torch.float32, device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
     return b, a
 
 def filter_data(data, b, a):
-    # data = data.cpu().numpy()
     filtered_data = data
     for key in b:
-        filtered_data = lfilter(b[key].cpu().numpy(), a[key].cpu().numpy(), filtered_data)
-    filtered_data = torch.tensor(filtered_data, dtype=torch.float32, device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        filtered_data = lfilter(b[key], a[key], filtered_data)
     return filtered_data
 
 def remove_artifact(data, fsamp):
     L = data.shape[0]
-    params = {'w': int(100e-3 * fsamp), 'threshold': 1.44}
-    artMask = torch.zeros(L, dtype=torch.bool, device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+    params = {'w': int(100e-3 * fsamp), 'threshold': 1.33}
+    artMask = np.zeros(L, dtype=bool)
     Wbis = 0
     t = 0
     start = 0
@@ -44,7 +38,8 @@ def remove_artifact(data, fsamp):
     w = params['w']
     while start < L:
         epoch = data[start:stop]
-        nvar = torch.var(epoch)
+        # nvar = torch.var(epoch)
+        nvar = np.var(epoch)
         if nvar >= params['threshold'] * pvar:
             W = [1,1]
         else:
@@ -57,7 +52,7 @@ def remove_artifact(data, fsamp):
         if stop - start < s:
             s = stop - start
 
-        cls = torch.mean(torch.tensor([W[0], Wbis], dtype=torch.float32, device=torch.device("cuda" if torch.cuda.is_available() else "cpu")))
+        cls = np.mean([W[0], Wbis])
         artMask[t:t + s] = cls >= 0.5
 
         Wbis = W[1]
@@ -142,7 +137,7 @@ def plot_signals(patient, side, data, meta, fsamp):
     time_vector = np.arange(len(normalized_signals[0])) / fsamp
     
     # Plot the signals
-    fig, ax = plt.subplots(figsize=(15, 10))
+    fig, ax = plt.subplots(figsize=(15, 8))
     for i, signal in enumerate(normalized_signals):
         c = '#212e47'
         if patient_meta.iloc[i]['class'] == 1: c = '#e26d0e'

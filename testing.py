@@ -24,47 +24,12 @@ def load_data(filepath, metapath):
     with np.load(filepath) as npfh:
         data = npfh['data']
         meta = pd.read_csv(metapath, sep=';')
+        # meta = pd.read_feather(metapath)
         lens = meta['length'].to_numpy()
         clss = meta['class'].to_numpy()
 
     print(f"Data loaded with shape: {data.shape}")
-    return torch.tensor(data, dtype=torch.float32).to(device), clss, lens, meta
-
-filepath = "C:/Users/fabri/Desktop/scripts_final/dataset/raw/UniTO-MERs/myDataset_raw_resampled.npz"
-metapath = "C:/Users/fabri/Desktop/scripts_final/dataset/raw/UniTO-MERs/metadata_myDataset_resampled.csv"
-# filepath = 'data.npz'
-# metapath = 'metadata.csv'
-print('Loading data...')
-raw_data, clss, lens, meta = load_data(filepath, metapath)
-
-# Display the first 3 rows of the table meta
-print(meta.head(3))
-
-# # Extract subset of data for patient P07, RIGHT hemisphere, first 10 seconds
-# patient_id = 'P07'
-# hemisphere = 'RIGHT'
-# subset_duration = 10 * 24000  # first 10 seconds
-# # Filter meta data for the specific patient and hemisphere
-# subset_meta = meta[(meta['patient'] == patient_id) & (meta['side'] == hemisphere)]
-# # Extract corresponding rows from raw_data
-# subset_indices = subset_meta.index.to_numpy()
-# subset_raw_data = raw_data[subset_indices, :subset_duration]
-# # Save the subset data and meta
-# subset_filepath = "subset_raw_data.npz"
-# subset_metapath = "subset_metadata.csv"
-# np.savez(subset_filepath, data=subset_raw_data.cpu().numpy())
-# subset_meta.to_csv(subset_metapath, sep=';', index=False)
-# print(f"Subset data saved to {subset_filepath} and {subset_metapath}")
-
-
-# Plot the first n signals of raw_data
-fsamp = 24000 # Hz
-fig, axs = plt.subplots(1, 1, figsize=(10, 4))
-time_vector = np.arange(0, lens[0]/fsamp, 1/fsamp)
-axs.plot(time_vector,raw_data[0, :lens[0]].cpu().numpy())
-axs.set_xlabel('Time (s)')
-axs.set_ylabel('Amplitude (uV)')
-plt.show()
+    return data, clss, lens, meta
 
 #%% Load trained model
 from trained_model.MLP_architecture import MLP_STIM
@@ -77,12 +42,6 @@ def load_model(model_path):
     print(f"Model loaded from {model_path}")
     return model
 
-model_path = os.path.join(os.getcwd(),'trained_model')
-fsamp = 24000
-b, a = lib.initialize_filter_coefficients(fsamp)
-
-model = load_model(model_path)
-
 #%% Main processing functions
 
 def process_recording(model, recording, fsamp, b, a):
@@ -93,8 +52,8 @@ def process_recording(model, recording, fsamp, b, a):
         predictions = np.array([])
         dt = time.time() - start_time
     else:
-        features = lib.extract_segment_features_min_max(artifact_free_data.cpu().numpy(), fsamp)
-        features = torch.tensor(features, dtype=torch.float32).to(device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+        features = lib.extract_segment_features_min_max(artifact_free_data, fsamp)
+        features = torch.tensor(features, dtype=torch.float32).to(device)
         with torch.no_grad():
             predictions = model(features)
             predictions = torch.sigmoid(predictions)
@@ -104,7 +63,7 @@ def process_recording(model, recording, fsamp, b, a):
 
 def main(model, raw_data, lens, fsamp, b, a):
     with tqdm_joblib(tqdm(total=raw_data.shape[0], desc="Processing Recordings")):
-        batch_size = 32
+        batch_size = 10
         results = []
         for i in tqdm(range(0, raw_data.shape[0], batch_size), desc="Processing Batches"):
             batch_results = Parallel(n_jobs=4, timeout=3600)(
@@ -114,7 +73,49 @@ def main(model, raw_data, lens, fsamp, b, a):
     predictions, dts = zip(*results)
     return predictions, dts
 
+def save_results(predictions, dts, meta, name):
+    all_predictions = []
+    mean_predictions = []
+    all_meta = []
+    for i, preds in enumerate(predictions):
+        mean_predictions.append(np.mean(preds))
+        for pred in preds:
+            all_predictions.append(pred[0])
+            all_meta.append(meta.iloc[i])
+    df = pd.DataFrame(all_meta)
+    df['prediction'] = all_predictions
+    filename = f'preds_{name}.csv'
+    df.to_csv(filename, index=False, sep=';')
+
+    df = pd.DataFrame(meta)
+    df['prediction'] = np.array(mean_predictions)
+    df['time'] = np.array(dts,dtype=np.float32)
+    filename = f'preds_per_rec_{name}.csv'
+    df.to_csv(filename, index=False, sep=';')
+
+#%%
+
+model_path = os.path.join(os.getcwd(),'trained_model')
+fsamp = 24000
+b, a = lib.initialize_filter_coefficients(fsamp)
+
+model = load_model(model_path)
+
+# filepath = "//192.168.164.127/public/projects/2024_UniTO_MERs_Classification/Cieciersky_2023_TESTING/raw_data/raw_all.npz"
+# metapath = "//192.168.164.127/public/projects/2024_UniTO_MERs_Classification/Cieciersky_2023_TESTING/raw_data/raw_all.feather"
+filepath = 'data.npz'
+metapath = 'metadata.csv'
+print('Loading data...')
+raw_data, clss, lens, meta = load_data(filepath, metapath)
 predictions, dts = main(model, raw_data, lens, fsamp, b, a)
-df = pd.DataFrame({'prediction': predictions, 'dt': dts})
-filename = 'predictions.txt'
-df.to_csv(filename, sep='\t', index=False)
+
+save_results(predictions, dts, meta, '')
+
+# main_path = "//192.168.164.127/public/projects/2024_UniTO_MERs_Classification/myMethod_Python_testing/all_subdatasets"
+# for n in range(1, 25):
+#     filepath = os.path.join(main_path,f"raw_all_{n}.npz")
+#     metapath = os.path.join(main_path,f"raw_all_{n}.feather")
+#     print('Loading data...')
+#     raw_data, clss, lens, meta = load_data(filepath, metapath)
+#     predictions, dts = main(model, raw_data, lens, fsamp, b, a)
+#     save_results(predictions, dts, meta, f'{n}')
