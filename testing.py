@@ -4,12 +4,13 @@ import os
 import numpy as np
 import pandas as pd
 import torch
-from tqdm import tqdm
-from tqdm_joblib import tqdm_joblib
 import time
 import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
 import lib
+
+import warnings
+warnings.filterwarnings("ignore")
 
 #%% Check for GPU availability
 
@@ -23,8 +24,7 @@ else:
 def load_data(filepath, metapath):
     with np.load(filepath) as npfh:
         data = npfh['data']
-        meta = pd.read_csv(metapath, sep=';')
-        # meta = pd.read_feather(metapath)
+        meta = pd.read_csv(metapath, sep=';') # meta = pd.read_feather(metapath)
         lens = meta['length'].to_numpy()
         clss = meta['class'].to_numpy()
 
@@ -61,19 +61,21 @@ def process_recording(model, recording, fsamp, b, a):
         predictions = predictions.cpu().numpy()
     return predictions, dt
 
-def main(model, raw_data, lens, fsamp, b, a):
-    with tqdm_joblib(tqdm(total=raw_data.shape[0], desc="Processing Recordings")):
-        batch_size = 10
-        results = []
-        for i in tqdm(range(0, raw_data.shape[0], batch_size), desc="Processing Batches"):
-            batch_results = Parallel(n_jobs=4, timeout=3600)(
-                delayed(process_recording)(model, raw_data[j, :lens[j]], fsamp, b, a)
-                for j in range(i, min(i + batch_size, raw_data.shape[0])))
-            results.extend(batch_results)
+def main(model, raw_data, lens, fsamp, b, a, partition_count, num_partitions):
+    batch_size = 10
+    results = []
+    num_batches = (raw_data.shape[0] + batch_size - 1) // batch_size
+    for i in range(0, raw_data.shape[0], batch_size):
+        batch_count = i // batch_size + 1
+        print(f"Partition ({partition_count}/{num_partitions}): batch {batch_count}/{num_batches}", end='\r')
+        batch_results = Parallel(n_jobs=4, timeout=3600)(
+            delayed(process_recording)(model, raw_data[j, :lens[j]], fsamp, b, a)
+            for j in range(i, min(i + batch_size, raw_data.shape[0])))
+        results.extend(batch_results)
     predictions, dts = zip(*results)
     return predictions, dts
 
-def save_results(predictions, dts, meta, name):
+def tabulate_results(predictions, dts, meta):
     all_predictions = []
     mean_predictions = []
     all_meta = []
@@ -82,16 +84,14 @@ def save_results(predictions, dts, meta, name):
         for pred in preds:
             all_predictions.append(pred[0])
             all_meta.append(meta.iloc[i])
-    df = pd.DataFrame(all_meta)
-    df['prediction'] = all_predictions
-    filename = f'preds_{name}.csv'
-    df.to_csv(filename, index=False, sep=';')
+    preds = pd.DataFrame(all_meta)
+    preds['prediction'] = all_predictions
 
-    df = pd.DataFrame(meta)
-    df['prediction'] = np.array(mean_predictions)
-    df['time'] = np.array(dts,dtype=np.float32)
-    filename = f'preds_per_rec_{name}.csv'
-    df.to_csv(filename, index=False, sep=';')
+    preds_per_rec = pd.DataFrame(meta)
+    preds_per_rec['prediction'] = np.array(mean_predictions)
+    preds_per_rec['time'] = np.array(dts,dtype=np.float32)
+
+    return preds, preds_per_rec
 
 #%%
 
@@ -107,15 +107,25 @@ filepath = 'data.npz'
 metapath = 'metadata.csv'
 print('Loading data...')
 raw_data, clss, lens, meta = load_data(filepath, metapath)
-predictions, dts = main(model, raw_data, lens, fsamp, b, a)
 
-save_results(predictions, dts, meta, '')
+all_preds = pd.DataFrame()
+all_preds_per_rec = pd.DataFrame()
 
-# main_path = "//192.168.164.127/public/projects/2024_UniTO_MERs_Classification/myMethod_Python_testing/all_subdatasets"
-# for n in range(1, 25):
-#     filepath = os.path.join(main_path,f"raw_all_{n}.npz")
-#     metapath = os.path.join(main_path,f"raw_all_{n}.feather")
-#     print('Loading data...')
-#     raw_data, clss, lens, meta = load_data(filepath, metapath)
-#     predictions, dts = main(model, raw_data, lens, fsamp, b, a)
-#     save_results(predictions, dts, meta, f'{n}')
+num_recordings = 200
+num_partitions = raw_data.shape[0] // num_recordings + 1
+for start_idx in range(0, raw_data.shape[0], num_recordings):
+    partition_count = start_idx // num_recordings + 1
+    end_idx = min(start_idx + num_recordings, raw_data.shape[0])
+    sub_raw_data = raw_data[start_idx:end_idx]
+    sub_lens = lens[start_idx:end_idx]
+    sub_meta = meta.iloc[start_idx:end_idx]
+    predictions, dts = main(model, sub_raw_data, sub_lens, fsamp, b, a, partition_count, num_partitions)
+    preds, preds_per_rec = tabulate_results(predictions, dts, sub_meta)
+    all_preds = pd.concat([all_preds, preds], ignore_index=True)
+    all_preds_per_rec = pd.concat([all_preds_per_rec, preds_per_rec], ignore_index=True)
+
+print()
+print('Done!')
+# Save the combined results
+all_preds.to_csv('preds.csv', index=False, sep=';')
+all_preds_per_rec.to_csv('preds_per_rec.csv', index=False, sep=';')
