@@ -112,8 +112,8 @@ Bugs are tracked as **GitHub issues**. Whenever you report an issue, please make
 
 
 ## Contacts
-**Fabrizio Sciscenti**, Ph.D. Candidate - [BIOLAB@Polito](https://biolab.polito.it/people/fabrizio-sciscenti/)
+**Fabrizio Sciscenti**, Ph.D. Candidate - [BIOLAB@Polito](https://biolab.polito.it/people/fabrizio-sciscenti/) <br>
 [@FSciscenti](https://x.com/FSciscenti) - fabrizio.sciscenti@polito.it
 
-**Marco Ghislieri**, Ph.D. - [BIOLAB@Polito](https://biolab.polito.it/people/marco-ghislieri/)
+**Marco Ghislieri**, Ph.D. - [BIOLAB@Polito](https://biolab.polito.it/people/marco-ghislieri/) <br>
 [@MarcoGhislieri](https://twitter.com/MarcoGhislieri) - marco.ghislieri@polito.it
