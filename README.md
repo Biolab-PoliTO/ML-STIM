@@ -15,12 +15,35 @@ This work introduces ```ML-STIM```, a machine learning-based pipeline for real-t
 
 ## Files description:
 The following files are provided within this GitHub repository:
-- `main.py`: main script to execute `ML-STIM`
-- `lib.py`: is a collection of function called within `main.py` to perform pre-processing (filtering + artifact removal) and feature extraction.
+- `testing.py`: main script to test `ML-STIM` on the input dataset
+- `lib.py`: is a collection of function called within `testing.py` to perform pre-processing (filtering + artifact removal) and feature extraction.
 - `trained_model`: the folder includes the trained model:
-	- `MLP_architecture.py`: it initialize the MultiLayer Perceptron (MLP) with predefined architecture
-	- `MLP_parameters.pth`: trained parameters for the model
-	- `normalization_intervals.txt`: it contains extreme values for the extracted features
+	- `MLP_architecture.py` defines a MultiLayer Perceptron (MLP) with predefined architecture
+	- `MLP_parameters.pth`containes the trained parameters for the model
+</p>
+
+## How to prepare your data:
+To use this analysis framework, your data must be structured in ```.npz``` data file and a ```.csv``` metafile.
+**Example Data**
+Your data files must contain signals as rows of a NxM matrix where N is the number of MERs, M is the length of the longest recording. 
+Recordings shorter than M must be zero-padded to length M. The actual recording length must be reported in the metadata file described in the following.
+**Data Structure**
+Your metadata file should contain a table with N rows and variables (columns):
+- `patient`: patient id (e.g. `P7`)
+- `side`: hemisphere (`LEFT` or `RIGHT`)
+- `electrode`: recording electrode (e.g. `Electrode1`)
+- `depth`: Estimated Distance from Target (EDT) expressed in `μm`
+- `length`: signal length (in samples) before zero-padding
+- `class`: label (`*0*` for *outside the STN*, `*1*` for *inside the STN*)
+
+```
+	patient	side	electrode	depth	length	class
+0	P7	LEFT	Electrode1	-5000	240000	0
+1	P7	LEFT	Electrode1	-1000	240000	1
+2	P7	LEFT	Electrode1	6000	227648	0
+```
+For a representative example of the expected input format, refer to the ```metadata.csv``` and ```data.npz``` file.
+
 </p>
 
 ## A simple workflow
@@ -78,26 +101,6 @@ model.load_state_dict(params)
 prediction = model(features)
 prediction = torch.sigmoid(prediction)
 ```
-
-## How to prepare your data:
-To use this analysis framework, your data must be in ```.npz``` format.
-**Example Data**
-...
-**Data Structure**
-Your metadata file should contain a table with variables (columns):
-- `patient`: patient id (e.g. `P7`)
-- `side`: hemisphere (`LEFT` or `RIGHT`)
-- `depth`: Estimated Distance from Target (EDT) expressed in `μm`
-- `length`: signal length (in samples) before zero-padding
-- `class`: label (`0` if the record is acquired from outside the STN, `1` if inside the STN)
-
-```
-	patient	side	electrode	depth	length	class
-0	P1	LEFT	Electrode1	-5000	240000	0
-1	P1	LEFT	Electrode1	-1000	240000	1
-2	P1	LEFT	Electrode1	6000	227648	0
-```
-For a representative example of the expected input format, refer to the ```metadata.csv``` and ```sample.npz``` file.
 
 ## References
 [1] Author, F., Author, S., Author, T. (2025). Title. Journal, chapter(edition), pp-pp. https://doi.org/link/to/doi
