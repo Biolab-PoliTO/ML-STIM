@@ -24,10 +24,10 @@ The following files are provided within this GitHub repository:
 
 ## How to prepare your data:
 To use this analysis framework, your data must be structured in ```.npz``` data file and a ```.csv``` metafile.
-**Example Data**
+<br> **Data** <br>
 Your data files must contain signals as rows of a NxM matrix where N is the number of MERs, M is the length of the longest recording. 
 Recordings shorter than M must be zero-padded to length M. The actual recording length must be reported in the metadata file described in the following.
-**Data Structure**
+<br> **Metadata** <br>
 Your metadata file should contain a table with N rows and variables (columns):
 - `patient`: patient id (e.g. `P7`)
 - `side`: hemisphere (`LEFT` or `RIGHT`)
