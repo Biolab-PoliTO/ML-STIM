@@ -24,17 +24,15 @@ The following files are provided within this GitHub repository:
 
 ## How to prepare your data:
 To use this analysis framework, your data must be structured in ```.npz``` data file and a ```.csv``` metafile.
-<br> **Data** <br>
-Your data files must contain signals as rows of a NxM matrix where N is the number of MERs, M is the length of the longest recording. 
+<br> **Data** : your data files must contain signals as rows of a NxM matrix where N is the number of MERs, M is the length of the longest recording. 
 Recordings shorter than M must be zero-padded to length M. The actual recording length must be reported in the metadata file described in the following.
-<br> **Metadata** <br>
-Your metadata file should contain a table with N rows and variables (columns):
+<br> **Metadata** : Your metadata file should contain a table with N rows and variables (columns):
 - `patient`: patient id (e.g. `P7`)
 - `side`: hemisphere (`LEFT` or `RIGHT`)
 - `electrode`: recording electrode (e.g. `Electrode1`)
 - `depth`: Estimated Distance from Target (EDT) expressed in `μm`
 - `length`: signal length (in samples) before zero-padding
-- `class`: label (`*0*` for *outside the STN*, `*1*` for *inside the STN*)
+- `class`: label (`0` for *outside the STN*, `1` for *inside the STN*)
 
 ```
 	patient	side	electrode	depth	length	class
