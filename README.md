@@ -58,7 +58,7 @@ filepath = "path/to/data.npz"
 metapath = "path/to/metadata.csv"
 
 with np.load(filepath) as npfh:
-	raw_data = npfh['data']			# Load data matrix
+	raw_data = npfh['data']		# Load data matrix
 meta = pd.read_csv(metapath)		# Load metadata
 ```
 2. signal processing:
