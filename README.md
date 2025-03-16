@@ -11,9 +11,9 @@ This work introduces ```ML-STIM```, a machine learning-based pipeline for real-t
 ## What ```ML-STIM``` algorithm does:
 1.	Loads `numpy` arrays (`.npz`) storing MERs as rows and the relative `.csv` metafile;
 2.	Applies `ML-STIM` pipeline to each MER:
-2.1	Filters and removes artifacts from raw MERs
-2.2	Extract temporal and spectral features from cleared signals
-2.3	Classifies MERs as inside-STN or outside-STN 
+	-	Filters and removes artifacts from raw MERs
+	-	Extract temporal and spectral features from cleared signals
+	-	Classifies MERs as inside-STN or outside-STN 
 3. 	Exports results in ```.csv``` format.
 
 ## Files description:
