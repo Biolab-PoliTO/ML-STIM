@@ -9,14 +9,17 @@ Deep Brain Stimulation (DBS) of the SubThalamic Nucleus (STN) is an effective el
 This work introduces ```ML-STIM```, a machine learning-based pipeline for real-time classification of MERs to identify the STN during DBS procedures. ```ML-STIM``` is designed for high classification accuracy and real-time applicability. It incorporates interpretable machine learning techniques to ensure compatibility with clinical practices.
 
 ## What ```ML-STIM``` algorithm does:
-1.	Load MERs stored as rows of a `numpy` array `.npz`, together with a metafile `.csv`;
-2.	Apply `ML-STIM` pipeline to each MER;
-3. 	Export results in ```.csv``` format.
+1.	Loads `numpy` arrays (`.npz`) storing MERs as rows and the relative `.csv` metafile;
+2.	Applies `ML-STIM` pipeline to each MER:
+2.1	Filters and removes artifacts from raw MERs
+2.2	Extract temporal and spectral features from cleared signals
+2.3	Classifies MERs as inside-STN or outside-STN 
+3. 	Exports results in ```.csv``` format.
 
 ## Files description:
 The following files are provided within this GitHub repository:
 - `testing.py`: main script to test `ML-STIM` on the input dataset
-- `lib.py`: is a collection of function called within `testing.py` to perform pre-processing (filtering + artifact removal) and feature extraction.
+- `lib.py`: is a collection of functions called within `testing.py` to perform pre-processing (filtering + artifact removal) and feature extraction.
 - `trained_model`: the folder includes the trained model:
 	- `MLP_architecture.py` defines a MultiLayer Perceptron (MLP) with predefined architecture
 	- `MLP_parameters.pth`containes the trained parameters for the model
@@ -24,21 +27,21 @@ The following files are provided within this GitHub repository:
 
 ## How to prepare your data:
 To use this analysis framework, your data must be structured in ```.npz``` data file and a ```.csv``` metafile.
-<br> **Data** : your data files must contain signals as rows of a NxM matrix where N is the number of MERs, M is the length of the longest recording. 
+- **Data** : your data file must contain MERs as rows of a NxM matrix where N is the number of recordings, M is the length of the longest recording.
 Recordings shorter than M must be zero-padded to length M. The actual recording length must be reported in the metadata file described in the following.
-<br> **Metadata** : Your metadata file should contain a table with N rows and variables (columns):
-- `patient`: patient id (e.g. `P7`)
-- `side`: hemisphere (`LEFT` or `RIGHT`)
-- `electrode`: recording electrode (e.g. `Electrode1`)
-- `depth`: Estimated Distance from Target (EDT) expressed in `μm`
-- `length`: signal length (in samples) before zero-padding
-- `class`: label (`0` for *outside the STN*, `1` for *inside the STN*)
+- **Metadata** : Your metadata file should contain a table with N rows and variables (columns):
+	- *patient*: patient id (e.g. `P7`)
+	- *side*: hemisphere (`LEFT` or `RIGHT`)
+	- *electrode*: recording electrode (e.g. `Electrode1`)
+	- *depth*: Estimated Distance from Target (EDT) expressed in *μm*
+	- *length*: signal length (in samples) before zero-padding
+	- *class*: label (`0` for **outside the STN**, `1` for **inside the STN**)
 
 ```
 	patient	side	electrode	depth	length	class
-0	P7	LEFT	Electrode1	-5000	240000	0
-1	P7	LEFT	Electrode1	-1000	240000	1
-2	P7	LEFT	Electrode1	6000	227648	0
+0	P07	RIGHT	Electrode1	-8000	240000	0
+1	P07	RIGHT	Electrode1	-1000	240000	1
+2	P07	RIGHT	Electrode1	 2000	227648	0
 ```
 For a representative example of the expected input format, refer to the ```metadata.csv``` and ```data.npz``` file.
 
@@ -51,14 +54,12 @@ A simplified workflow for a MER processing and classification looks as follows.
 
 ```r
 # Path definition
-filepath = "path/to/raw_data.npz"
-metapath = "path/to/raw_data.csv"
+filepath = "path/to/data.npz"
+metapath = "path/to/metadata.csv"
 
 with np.load(filepath) as npfh:
 	raw_data = npfh['data']			# Load data matrix
-meta = pd.read_feather(metapath)		# Load metadata
-
-print(f"Data loaded with shape: {raw_data.shape}")
+meta = pd.read_csv(metapath)		# Load metadata
 ```
 2. signal processing:
 
@@ -87,15 +88,16 @@ import torch
 from trained_model.MLP_architecture import MLP_STIM
 
 # Define model Path
-model_path = 'path/to/trained_model'
+model_path = 'path/to/trained_model/folder'
 
 # Import model
 model = MLP_STIM.to(device)	# Initialize empty model
 params = torch.load(os.path.join(model_path,'MLP_parameters.pth'), 
-                    weights_only=True, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+                    weights_only=True, 
+					map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 model.load_state_dict(params)
 
-# Classify the recording
+# Classify recordings
 prediction = model(features)
 prediction = torch.sigmoid(prediction)
 ```

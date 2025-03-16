@@ -1,3 +1,0 @@
-P22-LEFT
-P26-LEFT (repository)
-P33-L/R (bello, no artefatti)
