@@ -6,7 +6,7 @@
 
 Deep Brain Stimulation (DBS) of the SubThalamic Nucleus (STN) is an effective electroceutical therapy for treating motor symptoms in patients with Parkinson’s disease. Accurate placement of the stimulating electrode within the STN is essential for achieving optimal therapeutic outcomes. To this end, MicroElectrode Recordings (MERs) are acquired during surgery to provide intraoperative visual and auditory confirmation of the electrode position.
 
-This work introduces ```ML-STIM```, a machine learning-based pipeline for real-time classification of MERs to identify the STN during DBS procedures. ```ML-STIM``` is designed for high classification accuracy and real-time applicability. It incorporates interpretable machine learning techniques to ensure compatibility with clinical practices.
+This work introduces ```ML-STIM```, a machine learning-based pipeline for real-time classification of MERs to identify the STN during DBS procedures [1]. ```ML-STIM``` is designed for high classification accuracy and real-time applicability. It incorporates interpretable machine learning techniques to ensure compatibility with clinical practices.
 
 ## What ```ML-STIM``` algorithm does:
 1.	Loads `numpy` arrays (`.npz`) storing MERs as rows and the relative `.csv` metafile;
@@ -71,14 +71,14 @@ import lib
 fsamp = 24000		# Sampling frequency (Hz)
 b, a = lib.initialize_filter_coefficients(fsamp)
 
-recording = raw_data[0, :meta['length'][0].to_numpy()]
-filtered_data = lib.filter_data(recording, b, a)
-artifact_free_data = lib.remove_artifact(filtered_data, fsamp)
+recording = raw_data[0, :meta['length'][0].to_numpy()]			  # Select a raw signal
+filtered_data = lib.filter_data(recording, b, a)			  # Apply filters (band-pass + notch filters)
+artifact_free_data, art_mask = lib.remove_artifact(filtered_data, fsamp)  # Remove artifacts
 ```
 
 3. feature extraction:
 ```r
-features = lib.extract_segment_features(artifact_free_data, fsamp)
+features = lib.extract_segment_features(artifact_free_data, fsamp)	  # Extract features from 1-second segments
 ```
 
 4. classification:
@@ -91,19 +91,19 @@ from trained_model.MLP_architecture import MLP_STIM
 model_path = 'path/to/trained_model/folder'
 
 # Import model
-model = MLP_STIM.to(device)	# Initialize empty model
-params = torch.load(os.path.join(model_path,'MLP_parameters.pth'), 
+model = MLP_STIM.to(device)						# Initialize empty model
+params = torch.load(os.path.join(model_path,'MLP_parameters.pth'), 	# Import trained network parameters (weight and biases)
                     weights_only=True, 
-					map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-model.load_state_dict(params)
+		    map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+model.load_state_dict(params)						# Store paramaters into the empty architecture
 
 # Classify recordings
 prediction = model(features)
-prediction = torch.sigmoid(prediction)
+prediction = torch.sigmoid(prediction)	# Apply the sigmoid to get the probability of being inside the STN.
 ```
 
 ## References
-[1] Author, F., Author, S., Author, T. (2025). Title. Journal, chapter(edition), pp-pp. https://doi.org/link/to/doi
+[1] Sciscenti, F., Agostini, V., Rizzi, L., Lanotte, M. and Ghislieri, M. (2025). ML-STIM: Machine Learning for SubThalamic nucleus Intraoperative Mapping. Journal, chapter(edition), pp-pp. https://doi.org/link/to/doi
 
 ##  How to contribute to ```ML-STIM```
 Contributions are the heart of the open-source community, making it a fantastic space for learning, inspiration, and innovation. While we've done our best, our code may contain inaccuracies or might not fully meet your needs. If you come across any issues—or have ideas for improvements—we encourage you to contribute! Follow the instructions below to suggest edits or enhancements. Every contribution is **greatly appreciated**!
