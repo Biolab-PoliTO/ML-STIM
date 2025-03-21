@@ -74,16 +74,16 @@ import lib
 fsamp = 24000		# Sampling frequency (Hz)
 b, a = lib.initialize_filter_coefficients(fsamp)
 
-recording = raw_data[0, :meta['length'][0].to_numpy()]			  # Select a raw signal
-filtered_data = lib.filter_data(recording, b, a)			  # Apply filters (band-pass + notch filters)
-artifact_free_data, art_mask = lib.remove_artifact(filtered_data, fsamp)  # Remove artifacts
+recording = raw_data[0, :meta['length'][0].to_numpy()]		# Select a raw signal
+filtered_rec = lib.filter_data(recording, b, a)			# Apply filters (band-pass + notch filters)
+artifact_free_data, art_mask = lib.remove_artifact(filtered_data, fsamp)	# Remove artifacts
 ```
 Here's an example of artifact segmentation:
 <img  src="https://github.com/Biolab-PoliTO/ML-STIM/blob/main/docs/artifact_segmentation.png" style="width:100%; height:auto;"/> </p>
 
 3. feature extraction:
 ```r
-features = lib.extract_segment_features(artifact_free_data, fsamp)	  # Extract features from 1-second segments
+features = lib.extract_segment_features(artifact_free_data, fsamp)	# Extract features from 1-s segments
 ```
 
 4. classification:
@@ -97,18 +97,23 @@ model_path = 'path/to/trained_model/folder'
 
 # Import model
 model = MLP_STIM.to(device)						# Initialize empty model
-params = torch.load(os.path.join(model_path,'MLP_parameters.pth'), 	# Import trained network parameters (weight and biases)
+params = torch.load(os.path.join(model_path,'MLP_parameters.pth'), 	# Import weight and biases
                     weights_only=True, 
 		    map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-model.load_state_dict(params)						# Store paramaters into the empty architecture
+model.load_state_dict(params)						# Fill MLP architecture
 
 # Classify recordings
 prediction = model(features)
-prediction = torch.sigmoid(prediction)	# Apply the sigmoid to get the probability of being inside the STN.
+
+# Apply the sigmoid to get the probability of being inside the STN.
+prediction = torch.sigmoid(prediction)
+
+# Apply thresholding to get the class label.
+class = (prediction >= .51).astype(int)
 ```
 
 ## References
-[1] Sciscenti, F., Agostini, V., Rizzi, L., Lanotte, M. and Ghislieri, M. (2025). ML-STIM: Machine Learning for SubThalamic nucleus Intraoperative Mapping. Journal, chapter(edition), pp-pp. https://doi.org/link/to/doi
+[1] Sciscenti, F., Agostini, V., Rizzi, L., Lanotte, M., and Ghislieri, M. (2025). ML-STIM: Machine Learning for SubThalamic nucleus Intraoperative Mapping. Journal, chapter(edition), pp-pp. https://doi.org/link/to/doi
 
 ##  How to contribute to ```ML-STIM```
 Contributions are the heart of the open-source community, making it a fantastic space for learning, inspiration, and innovation. While we've done our best, our code may contain inaccuracies or might not fully meet your needs. If you come across any issues—or have ideas for improvements—we encourage you to contribute! Follow the instructions below to suggest edits or enhancements. Every contribution is **greatly appreciated**!
