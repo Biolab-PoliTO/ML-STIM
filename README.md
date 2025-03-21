@@ -23,6 +23,8 @@ The following files are provided within this GitHub repository:
 - `trained_model`: the folder includes the trained model:
 	- `MLP_architecture.py` defines a MultiLayer Perceptron (MLP) with predefined architecture
 	- `MLP_parameters.pth`containes the trained parameters for the model
+ - `data.npz`: example data file containing MERs from a representative subject's hemisphere
+ - `metadata.csv`: infos about MERs in `data.npz`
 </p>
 
 ## How to prepare your data:
