@@ -122,7 +122,7 @@ Contributions are the heart of the open-source community, making it a fantastic 
 
 Bugs are tracked as **GitHub issues**. Whenever you report an issue, please make sure to:
 1.	Use a concise and descriptive title
-2.	Report your MATLAB version
+2.	Report your Python version
 3.	Report whether the code ran successfully on the test data available within the repository.
 
 
