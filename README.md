@@ -74,8 +74,8 @@ import lib
 fsamp = 24000		# Sampling frequency (Hz)
 b, a = lib.initialize_filter_coefficients(fsamp)
 
-recording = raw_data[0, :meta['length'][0].to_numpy()]		# Select a raw signal
-filtered_rec = lib.filter_data(recording, b, a)			# Apply filters (band-pass + notch filters)
+recording = raw_data[0, :meta['length'][0].to_numpy()]	# Select a raw signal
+filtered_rec = lib.filter_data(recording, b, a)		# Apply filters (band-pass + notch)
 artifact_free_data, art_mask = lib.remove_artifact(filtered_data, fsamp)	# Remove artifacts
 ```
 Here's an example of artifact segmentation:
@@ -83,7 +83,7 @@ Here's an example of artifact segmentation:
 
 3. feature extraction:
 ```r
-features = lib.extract_segment_features(artifact_free_data, fsamp)	# Extract features from 1-s segments
+features = lib.extract_segment_features(artifact_free_data, fsamp)  # Extract features from 1-s segments
 ```
 
 4. classification:
