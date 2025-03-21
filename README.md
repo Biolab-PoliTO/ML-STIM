@@ -83,7 +83,7 @@ Here's an example of artifact segmentation:
 
 3. feature extraction:
 ```r
-features = lib.extract_segment_features(artifact_free_data, fsamp)  # Extract features from 1-s segments
+features = lib.extract_segment_features(artifact_free_data, fsamp)  # Extract features from 1s-segments
 ```
 
 4. classification:
