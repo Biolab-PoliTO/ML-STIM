@@ -53,6 +53,9 @@ A simplified workflow for a MER processing and classification looks as follows.
 1. data loading:
 
 ```r
+import numpy as np
+import pandas as pd
+
 # Path definition
 filepath = "path/to/data.npz"
 metapath = "path/to/metadata.csv"
@@ -75,6 +78,8 @@ recording = raw_data[0, :meta['length'][0].to_numpy()]			  # Select a raw signal
 filtered_data = lib.filter_data(recording, b, a)			  # Apply filters (band-pass + notch filters)
 artifact_free_data, art_mask = lib.remove_artifact(filtered_data, fsamp)  # Remove artifacts
 ```
+Here's an example of artifact segmentation:
+<img  src="https://github.com/Biolab-PoliTO/ML-STIM/blob/main/docs/artifact_segmentation.png" style="width:100%; height:auto;"/> </p>
 
 3. feature extraction:
 ```r
