@@ -4,9 +4,9 @@
 
 <img  src="https://github.com/Biolab-PoliTO/ML-STIM/blob/main/docs/ML-STIM_cover.jpg" style="width:100%; height:auto;"/></p>
 
-Deep Brain Stimulation (DBS) of the SubThalamic Nucleus (STN) is an effective electroceutical therapy for treating motor symptoms in patients with Parkinson’s disease. Accurate placement of the stimulating electrode within the STN is essential for achieving optimal therapeutic outcomes. To this end, MicroElectrode Recordings (MERs) are acquired during surgery to provide intraoperative visual and auditory confirmation of the electrode position.
+Deep Brain Stimulation (DBS) of the SubThalamic Nucleus (STN) is an effective electroceutical therapy for treating motor symptoms in patients with Parkinson’s disease. Accurate placement of the stimulating electrode within the STN is essential for achieving optimal therapeutic outcomes. To this end, MicroElectrode Recordings (MERs) are acquired during surgery to provide intraoperative visual and auditory confirmation of the electrode position. MERs are traditionally analyzed by trained operators. However, this approach is time-consuming and subject to variability. <br>
 
-This work introduces ```ML-STIM```, a machine learning-based pipeline for real-time classification of MERs to identify the STN during DBS procedures [1]. ```ML-STIM``` is designed for high classification accuracy and real-time applicability. It incorporates interpretable machine learning techniques to ensure compatibility with clinical practices.
+This work introduces ```ML-STIM```, a machine learning-based pipeline for real-time classification of MERs to identify the STN during DBS procedures [1]. ```ML-STIM``` is designed to automate STN classification from MERs, ensuring high classification accuracy and real-time applicability. It incorporates interpretable machine learning techniques to ensure compatibility with clinical practices.
 
 ## What ```ML-STIM``` algorithm does:
 1.	Loads `numpy` arrays (`.npz`) storing MERs as rows and the relative `.csv` metafile;
