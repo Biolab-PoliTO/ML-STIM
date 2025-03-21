@@ -1,3 +1,28 @@
+"""
+This module provides functions for signal processing, including filtering, 
+artifact removal, and feature extraction from MicroElectrode Recordings (MERs).
+
+Author(s): Fabrizio SCISCENTI (fabrizio.sciscenti@polito.it)
+           PolitoBIOMed Lab and BIOLAB, Politecnico di Torino, Turin, Italy
+
+           Marco GHISLIERI (marco.ghislieri@polito.it)
+           PolitoBIOMed Lab and BIOLAB, Politecnico di Torino, Turin, Italy 
+
+Last Update: 21-03-2025
+
+Functions:
+----------
+    initialize_filter_coefficients(fsamp)
+        Initializes filter coefficients for highpass, lowpass, and notch filters.
+    filter_data(data, b, a)
+        Applies a series of filters to the input data.
+    remove_artifact(data, fsamp)
+        Removes artifacts from the input data based on variance thresholding.
+    extract_segment_features_min_max(data, fsamp)
+        Extracts features from data segments
+
+"""
+
 from scipy import signal
 import torch
 import numpy as np
@@ -6,6 +31,13 @@ from scipy.stats import skew, kurtosis
 import pandas as pd
 
 def initialize_filter_coefficients(fsamp):
+    """
+    Initializes filter coefficients for highpass, lowpass, and notch filters.
+    Parameters:
+        fsamp (float): Sampling frequency of the signal.
+    Returns:
+        tuple: Two dictionaries containing the filter coefficients (b, a).
+    """
     b = {}
     a = {}
     nyquist = 0.5 * fsamp
@@ -19,12 +51,29 @@ def initialize_filter_coefficients(fsamp):
     return b, a
 
 def filter_data(data, b, a):
+    """
+    Applies a series of filters to the input data.
+    Parameters:
+        data (numpy.ndarray): Input MER.
+        b (dict): Dictionary of numerator filter coefficients.
+        a (dict): Dictionary of denominator filter coefficients.
+    Returns:
+        numpy.ndarray: Filtered MER.
+    """
     filtered_data = data
     for key in b:
         filtered_data = lfilter(b[key], a[key], filtered_data)
     return filtered_data
 
 def remove_artifact(data, fsamp):
+    """
+    Removes artifacts from the input data based on variance thresholding.
+    Parameters:
+        data (numpy.ndarray): Input MER.
+        fsamp (float): Sampling frequency of the signal.
+    Returns:
+        tuple: Cleaned MER and artifact mask.
+    """
     L = data.shape[0]
     params = {'w': int(100e-3 * fsamp), 'threshold': 1.33}
     artMask = np.zeros(L, dtype=bool)
@@ -67,9 +116,17 @@ def remove_artifact(data, fsamp):
     clearSignal = data[~artMask]
     return clearSignal, artMask
 
-def extract_segment_features_min_max(data, fs):
-    segment_length = fs
-    # num_segments = data.shape[0] // segment_length
+def extract_segment_features_min_max(data, fsamp):
+    """
+    Extracts features from 1-second long data segments.
+    Parameters:
+        data (numpy.ndarray): Input MER.
+        fsamp (float): Sampling frequency of the signal.
+    Returns:
+        numpy.ndarray: Extracted and normalized features.
+    """
+
+    segment_length = fsamp # 1 second
     all_features = []
 
     # normalization intervals computed from the training set
@@ -83,10 +140,10 @@ def extract_segment_features_min_max(data, fs):
         segment = data[start:start + segment_length]
 
         # PSD calculation
-        freqs, Pxx = welch(segment, fs, nperseg=fs // 10)
+        freqs, Pxx = welch(segment, fsamp, nperseg=fsamp // 10)
         P_tot = np.sum(Pxx)
         PSD = Pxx / P_tot
-        freqsA, PxxA = welch(np.abs(segment), fs, nperseg=fs // 10)
+        freqsA, PxxA = welch(np.abs(segment), fsamp, nperseg=fsamp // 10)
         P_totA = np.sum(PxxA)
         PSDA = PxxA / P_totA
        
