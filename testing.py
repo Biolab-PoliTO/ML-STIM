@@ -4,8 +4,8 @@
 %  ML-STIM: Machine Learning for SubThalamic nucleus Intraoperative Mapping  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Python script for processing and classifying MicroElectrode Recorings (MERs). 
-This script loads MERs, processes it (apply filters and remove artifacts), 
+Python script for processing and classifying MicroElectrode Recordings (MERs). 
+This script loads MERs, processes it (applies filters and removes artifacts), 
 extracts features, and uses a pre-trained MLP model to make predictions. The 
 results are then tabulated and saved to CSV files.
 
@@ -109,13 +109,10 @@ def tabulate_results(predictions, dts, meta):
 
 #%% Main processing functions
 # -------------------------
-def process_recording(model, recording, fsamp, b, a, apply_artifact_removal):
+def process_recording(model, recording, fsamp, b, a):
     start_time = time.time()
     filtered_data = lib.filter_data(recording, b, a)
-    if apply_artifact_removal:
-        artifact_free_data, _ = lib.remove_artifact(filtered_data, fsamp)
-    else:
-        artifact_free_data = filtered_data.copy()
+    artifact_free_data, _ = lib.remove_artifact(filtered_data, fsamp)
     if artifact_free_data.shape[0] < fsamp:
         predictions = np.array([])
         dt = time.time() - start_time
@@ -129,7 +126,7 @@ def process_recording(model, recording, fsamp, b, a, apply_artifact_removal):
         predictions = predictions.cpu().numpy()
     return predictions, dt
 
-def main(model, raw_data, lens, fsamp, b, a, apply_artifact_removal, partition_count, num_partitions):
+def main(model, raw_data, lens, fsamp, b, a, partition_count, num_partitions):
     batch_size = 10
     results = []
     num_batches = (raw_data.shape[0] + batch_size - 1) // batch_size
@@ -137,7 +134,7 @@ def main(model, raw_data, lens, fsamp, b, a, apply_artifact_removal, partition_c
         batch_count = i // batch_size + 1
         print(f"Partition ({partition_count}/{num_partitions}): batch {batch_count}/{num_batches}", end='\r')
         batch_results = Parallel(n_jobs=4, timeout=3600)(
-            delayed(process_recording)(model, raw_data[j, :lens[j]], fsamp, b, a, apply_artifact_removal)
+            delayed(process_recording)(model, raw_data[j, :lens[j]], fsamp, b, a)
             for j in range(i, min(i + batch_size, raw_data.shape[0])))
         results.extend(batch_results)
     predictions, dts = zip(*results)
@@ -160,10 +157,6 @@ raw_data, clss, lens, meta = load_data(filepath, metapath)
 fsamp = 24000
 b, a = lib.initialize_filter_coefficients(fsamp)
 
-# Apply artifact removal
-# ----------------------
-apply_artifact_removal = True
-
 # Initialize empty dataframes that will store the results
 # ---------------------------------------------------------
 all_preds = pd.DataFrame()              
@@ -180,7 +173,7 @@ for start_idx in range(0, raw_data.shape[0], num_recordings):
     sub_raw_data = raw_data[start_idx:end_idx]
     sub_lens = lens[start_idx:end_idx]
     sub_meta = meta.iloc[start_idx:end_idx]
-    predictions, dts = main(model, sub_raw_data, sub_lens, fsamp, b, a, apply_artifact_removal, partition_count, num_partitions)
+    predictions, dts = main(model, sub_raw_data, sub_lens, fsamp, b, a, partition_count, num_partitions)
     preds, preds_per_rec = tabulate_results(predictions, dts, sub_meta)
     all_preds = pd.concat([all_preds, preds], ignore_index=True)
     all_preds_per_rec = pd.concat([all_preds_per_rec, preds_per_rec], ignore_index=True)
