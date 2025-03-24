@@ -24,11 +24,9 @@ Functions:
 """
 
 from scipy import signal
-import torch
 import numpy as np
 from scipy.signal import lfilter, welch
 from scipy.stats import skew, kurtosis
-import pandas as pd
 
 def initialize_filter_coefficients(fsamp):
     """
@@ -42,10 +40,10 @@ def initialize_filter_coefficients(fsamp):
     a = {}
     nyquist = 0.5 * fsamp
     f_high = 250
-    b['high'], a['high'] = signal.butter(4, f_high / nyquist, btype='highpass')
+    b['high'], a['high'] = signal.butter(6, f_high / nyquist, btype='highpass')
     f_low = 5000
-    b['low'], a['low'] = signal.butter(8, f_low / nyquist, btype='lowpass')
-    notch_freqs = np.arange(150, 5000, 50)
+    b['low'], a['low'] = signal.butter(6, f_low / nyquist, btype='lowpass')
+    notch_freqs = np.arange(250, 4000, 50)
     for freq in notch_freqs:
         b[f'notch_{freq}Hz'], a[f'notch_{freq}Hz'] = signal.iirnotch(freq, 50, fsamp)
     return b, a
@@ -87,7 +85,6 @@ def remove_artifact(data, fsamp):
     w = params['w']
     while start < L:
         epoch = data[start:stop]
-        # nvar = torch.var(epoch)
         nvar = np.var(epoch)
         if nvar >= params['threshold'] * pvar:
             W = [1,1]
@@ -158,9 +155,10 @@ def extract_segment_features_min_max(data, fsamp):
         PSDindex = 0
         for j in range(22):
             PSDindex += np.sum(PSD[(freqs >= 255 + j * 100) & (freqs <= 245 + (j + 1) * 100)])   
-        kurt = kurtosis(segment)        
+        kurt = kurtosis(segment)
 
         features = np.array([avgAbsDiff, pr_8_13Hz, pr_30_70Hz, skewness, PSDratio, zc_count, pr_1_2kHz, PSDindex, kurt])
+
         all_features.append(features)
 
     all_features = np.stack(all_features)
