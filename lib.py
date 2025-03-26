@@ -40,10 +40,10 @@ def initialize_filter_coefficients(fsamp):
     a = {}
     nyquist = 0.5 * fsamp
     f_high = 250
-    b['high'], a['high'] = signal.butter(6, f_high / nyquist, btype='highpass')
+    b['high'], a['high'] = signal.butter(4, f_high / nyquist, btype='highpass')
     f_low = 5000
-    b['low'], a['low'] = signal.butter(6, f_low / nyquist, btype='lowpass')
-    notch_freqs = np.arange(250, 4000, 50)
+    b['low'], a['low'] = signal.butter(8, f_low / nyquist, btype='lowpass')
+    notch_freqs = np.arange(150, 5000, 50)
     for freq in notch_freqs:
         b[f'notch_{freq}Hz'], a[f'notch_{freq}Hz'] = signal.iirnotch(freq, 50, fsamp)
     return b, a
@@ -60,7 +60,7 @@ def filter_data(data, b, a):
     """
     filtered_data = data
     for key in b:
-        filtered_data = lfilter(b[key], a[key], filtered_data)
+        filtered_data = lfilter(b[key], a[key], filtered_data).astype(np.float32)
     return filtered_data
 
 def remove_artifact(data, fsamp):
