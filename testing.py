@@ -126,13 +126,13 @@ def process_recording(model, recording, fsamp, b, a):
         predictions = predictions.cpu().numpy()
     return predictions, dt
 
-def main(model, raw_data, lens, fsamp, b, a, partition_count, num_partitions):
-    batch_size = 10
+def main(model, raw_data, lens, fsamp, b, a):
+    batch_size = 1
     results = []
     num_batches = (raw_data.shape[0] + batch_size - 1) // batch_size
     for i in range(0, raw_data.shape[0], batch_size):
         batch_count = i // batch_size + 1
-        print(f"Partition ({partition_count}/{num_partitions}): batch {batch_count}/{num_batches}", end='\r')
+        print(f"batch (x/{num_batches}): {batch_count}", end='\r')
         batch_results = Parallel(n_jobs=4, timeout=3600)(
             delayed(process_recording)(model, raw_data[j, :lens[j]], fsamp, b, a)
             for j in range(i, min(i + batch_size, raw_data.shape[0])))
@@ -173,7 +173,9 @@ for start_idx in range(0, raw_data.shape[0], num_recordings):
     sub_raw_data = raw_data[start_idx:end_idx]
     sub_lens = lens[start_idx:end_idx]
     sub_meta = meta.iloc[start_idx:end_idx]
-    predictions, dts = main(model, sub_raw_data, sub_lens, fsamp, b, a, partition_count, num_partitions)
+    print("")
+    print(f"Partition {partition_count}/{num_partitions}")
+    predictions, dts = main(model, sub_raw_data, sub_lens, fsamp, b, a)
     preds, preds_per_rec = tabulate_results(predictions, dts, sub_meta)
     all_preds = pd.concat([all_preds, preds], ignore_index=True)
     all_preds_per_rec = pd.concat([all_preds_per_rec, preds_per_rec], ignore_index=True)
