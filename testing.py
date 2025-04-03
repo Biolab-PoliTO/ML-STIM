@@ -112,12 +112,12 @@ def tabulate_results(predictions, dts, meta):
 def process_recording(model, recording, fsamp, b, a):
     start_time = time.time()
     filtered_data = lib.filter_data(recording, b, a)
-    artifact_free_data, _ = lib.remove_artifact(filtered_data, fsamp)
+    artifact_free_data, _ = lib.remove_artifacts(filtered_data, fsamp)
     if artifact_free_data.shape[0] < fsamp:
         predictions = np.array([])
         dt = time.time() - start_time
     else:
-        features = lib.extract_segment_features_min_max(artifact_free_data, fsamp)
+        features = lib.extract_features(artifact_free_data, fsamp)
         features = torch.tensor(features, dtype=torch.float32).to(device)
         with torch.no_grad():
             predictions = model(features)

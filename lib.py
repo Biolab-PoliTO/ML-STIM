@@ -8,7 +8,7 @@ Author(s): Fabrizio SCISCENTI (fabrizio.sciscenti@polito.it)
            Marco GHISLIERI (marco.ghislieri@polito.it)
            PolitoBIOMed Lab and BIOLAB, Politecnico di Torino, Turin, Italy 
 
-Last Update: 21-03-2025
+Last Update: 02-04-2025
 
 Functions:
 ----------
@@ -18,7 +18,7 @@ Functions:
         Applies a series of filters to the input data.
     remove_artifact(data, fsamp)
         Removes artifacts from the input data based on variance thresholding.
-    extract_segment_features_min_max(data, fsamp)
+    extract_features(data, fsamp)
         Extracts features from data segments
 
 """
@@ -39,13 +39,14 @@ def initialize_filter_coefficients(fsamp):
     b = {}
     a = {}
     nyquist = 0.5 * fsamp
-    f_high = 250
-    b['high'], a['high'] = signal.butter(4, f_high / nyquist, btype='highpass')
-    f_low = 5000
-    b['low'], a['low'] = signal.butter(8, f_low / nyquist, btype='lowpass')
-    notch_freqs = np.arange(150, 5000, 50)
+
+    f_band = (250, 5000)
+    b['band'], a['band'] = signal.butter(6, [f_band[0] / nyquist, f_band[1] / nyquist], btype='bandpass')
+
+    notch_freqs = np.arange(200, 5000, 50)
     for freq in notch_freqs:
         b[f'notch_{freq}Hz'], a[f'notch_{freq}Hz'] = signal.iirnotch(freq, 50, fsamp)
+    
     return b, a
 
 def filter_data(data, b, a):
@@ -63,7 +64,7 @@ def filter_data(data, b, a):
         filtered_data = lfilter(b[key], a[key], filtered_data).astype(np.float32)
     return filtered_data
 
-def remove_artifact(data, fsamp):
+def remove_artifacts(data, fsamp):
     """
     Removes artifacts from the input data based on variance thresholding.
     Parameters:
@@ -113,7 +114,7 @@ def remove_artifact(data, fsamp):
     clearSignal = data[~artMask]
     return clearSignal, artMask
 
-def extract_segment_features_min_max(data, fsamp):
+def extract_features(data, fsamp):
     """
     Extracts features from 1-second long data segments.
     Parameters:
