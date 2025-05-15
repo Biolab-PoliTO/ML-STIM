@@ -48,6 +48,7 @@ import torch
 import time
 import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
+from scipy.signal import resample
 import lib
 import warnings
 warnings.filterwarnings("ignore")
@@ -110,6 +111,10 @@ def tabulate_results(predictions, dts, meta):
 #%% Main processing functions
 # -------------------------
 def process_recording(model, recording, fsamp, b, a):
+    if fsamp != 24000:
+        num_samples = int(recording.shape[0] * 24000 / fsamp)
+        artifact_free_data = resample(recording, num_samples)
+        fsamp = 24000
     start_time = time.time()
     filtered_data = lib.filter_data(recording, b, a)
     artifact_free_data, _ = lib.remove_artifacts(filtered_data, fsamp)
@@ -154,7 +159,7 @@ raw_data, clss, lens, meta = load_data(filepath, metapath)
 
 # Initialize filter coefficients
 # ------------------------------
-fsamp = 24000
+fsamp = 20000 # adjust sampling frequency if needed
 b, a = lib.initialize_filter_coefficients(fsamp)
 
 # Initialize empty dataframes that will store the results
