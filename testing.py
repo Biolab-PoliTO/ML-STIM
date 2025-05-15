@@ -159,7 +159,7 @@ raw_data, clss, lens, meta = load_data(filepath, metapath)
 
 # Initialize filter coefficients
 # ------------------------------
-fsamp = 20000 # adjust sampling frequency if needed
+fsamp = 24000 # adjust sampling frequency if needed
 b, a = lib.initialize_filter_coefficients(fsamp)
 
 # Initialize empty dataframes that will store the results
