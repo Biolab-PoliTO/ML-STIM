@@ -4,12 +4,12 @@
 
 <img  src="https://github.com/Biolab-PoliTO/ML-STIM/blob/main/docs/ML-STIM_cover.jpg" style="width:100%; height:auto;"/></p>
 
-Deep Brain Stimulation (DBS) of the SubThalamic Nucleus (STN) is an effective electroceutical therapy for treating motor symptoms in patients with Parkinson’s disease. Accurate placement of the stimulating electrode within the STN is essential for achieving optimal therapeutic outcomes. To this end, MicroElectrode Recordings (MERs) are acquired during surgery to provide intraoperative visual and auditory confirmation of the electrode position. MERs are traditionally analyzed by trained operators. However, this approach is time-consuming and subject to variability. <br>
+Deep Brain Stimulation (DBS) of the SubThalamic Nucleus (STN) is an effective electroceutical therapy for treating motor symptoms in patients with Parkinson’s Disease (PD). Accurate placement of the stimulating electrode within the STN is essential for achieving optimal therapeutic outcomes. To this end, MicroElectrode Recordings (MERs) are acquired during surgery to provide intraoperative visual and auditory confirmation of the electrode position. MERs are traditionally analyzed by trained operators. However, this approach is time-consuming and subject to variability. <br>
 
 This work introduces ```ML-STIM```, a machine learning-based pipeline for real-time classification of MERs to identify the STN during DBS procedures. ```ML-STIM``` is designed to ensure high classification accuracy and real-time applicability, incorporating interpretable machine learning techniques to ensure compatibility with clinical practices.
 
 ## What ```ML-STIM``` algorithm does:
-1.	Loads `numpy` arrays (`.npz`) storing MERs as rows and the relative `.csv` metafile;
+1.	Loads `numpy` arrays (`.npz`) storing MERs as rows and the relative `.csv` metafile
 2.	Applies `ML-STIM` pipeline to each MER:
 	-	Filters and removes artifacts from raw MERs
 	-	Extract temporal and spectral features from cleared signals
@@ -24,7 +24,7 @@ The following files are provided within this GitHub repository:
 	- `MLP_architecture.py` defines a MultiLayer Perceptron (MLP) with predefined architecture
 	- `MLP_parameters.pth`containes the trained parameters for the model
  - `data.npz`: example data file containing MERs from a representative subject's hemisphere
- - `metadata.csv`: infos about MERs in `data.npz`
+ - `metadata.csv`: infos about MERs in `data.npz`.
 </p>
 
 ## How to prepare your data:
@@ -32,9 +32,9 @@ To use this analysis framework, your data must be structured in ```.npz``` data 
 - **Data** : your data file must contain MERs as rows of a NxM matrix where N is the number of recordings, M is the length of the longest recording.
 Recordings shorter than M must be zero-padded to length M. The actual recording length must be reported in the metadata file described in the following.
 - **Metadata** : Your metadata file should contain a table with N rows and variables (columns):
-	- *patient*: patient id (e.g. `P7`)
+	- *patient*: patient id (e.g., `P7`)
 	- *side*: hemisphere (`LEFT` or `RIGHT`)
-	- *electrode*: recording electrode (e.g. `Electrode1`)
+	- *electrode*: recording electrode (e.g., `Electrode1`)
 	- *depth*: Estimated Distance from Target (EDT) expressed in *μm*
 	- *length*: signal length (in samples) before zero-padding
 	- *class*: label (`0` for **outside the STN**, `1` for **inside the STN**)
@@ -50,9 +50,9 @@ For a representative example of the expected input format, refer to the ```metad
 </p>
 
 ## A simple workflow
-A simplified workflow for a MER processing and classification looks as follows.
+A simplified workflow for MER processing and classification looks as follows.
 
-1. data loading:
+1. **Data loading:**
 
 ```r
 import numpy as np
@@ -66,7 +66,7 @@ with np.load(filepath) as npfh:
 	raw_data = npfh['data']		# Load data matrix
 meta = pd.read_csv(metapath)		# Load metadata
 ```
-2. signal processing:
+2. **Signal processing:**
 
 ```r
 # Import library
@@ -83,12 +83,12 @@ artifact_free_data, art_mask = lib.remove_artifact(filtered_data, fsamp)	# Remov
 Here's an example of artifact segmentation:
 <img  src="https://github.com/Biolab-PoliTO/ML-STIM/blob/main/docs/artifact_segmentation.png" style="width:100%; height:auto;"/> </p>
 
-3. feature extraction:
+3. **Feature extraction:**
 ```r
 features = lib.extract_segment_features(artifact_free_data, fsamp)	# from 1-second segments
 ```
 
-4. classification:
+4. **Classification:**
 ```r
 import torch
 # Import architecture
