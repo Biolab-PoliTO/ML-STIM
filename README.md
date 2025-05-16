@@ -115,7 +115,7 @@ class = (prediction >= .51).astype(int)
 ```
 
 ## References
-[1] Sciscenti, F., Agostini, V., Rizzi, L., Lanotte, M., & Ghislieri, M. (2025). ML-STIM: Machine Learning for SubThalamic nucleus Intraoperative Mapping (1.0.0) [Dataset]. [Zenodo](https://doi.org/10.5281/zenodo.14894226).
+[1] Sciscenti, F., Agostini, V., Rizzi, L., Lanotte, M., & Ghislieri, M. (2025). ML-STIM: Machine Learning for SubThalamic nucleus Intraoperative Mapping (1.0.0) [Dataset]. Zenodo. DOI: https://doi.org/10.5281/zenodo.14894226.
 
 ##  How to contribute to ```ML-STIM```
 Contributions are the heart of the open-source community, making it a fantastic space for learning, inspiration, and innovation. While we've done our best, our code may contain inaccuracies or might not fully meet your needs. If you come across any issues—or have ideas for improvements—we encourage you to contribute! Follow the instructions below to suggest edits or enhancements. Every contribution is **greatly appreciated**!
