@@ -6,7 +6,7 @@
 
 Deep Brain Stimulation (DBS) of the SubThalamic Nucleus (STN) is an effective electroceutical therapy for treating motor symptoms in patients with Parkinson’s disease. Accurate placement of the stimulating electrode within the STN is essential for achieving optimal therapeutic outcomes. To this end, MicroElectrode Recordings (MERs) are acquired during surgery to provide intraoperative visual and auditory confirmation of the electrode position. MERs are traditionally analyzed by trained operators. However, this approach is time-consuming and subject to variability. <br>
 
-This work introduces ```ML-STIM```, a machine learning-based pipeline for real-time classification of MERs to identify the STN during DBS procedures [1]. ```ML-STIM``` is designed to ensure high classification accuracy and real-time applicability, incorporating interpretable machine learning techniques to ensure compatibility with clinical practices.
+This work introduces ```ML-STIM```, a machine learning-based pipeline for real-time classification of MERs to identify the STN during DBS procedures. ```ML-STIM``` is designed to ensure high classification accuracy and real-time applicability, incorporating interpretable machine learning techniques to ensure compatibility with clinical practices.
 
 ## What ```ML-STIM``` algorithm does:
 1.	Loads `numpy` arrays (`.npz`) storing MERs as rows and the relative `.csv` metafile;
@@ -115,7 +115,7 @@ class = (prediction >= .51).astype(int)
 ```
 
 ## References
-[1] Sciscenti, F., Agostini, V., Rizzi, L., Lanotte, M., and Ghislieri, M. (2025). ML-STIM: Machine Learning for SubThalamic nucleus Intraoperative Mapping. Journal, chapter(edition), pp-pp. https://doi.org/link/to/doi
+[1] Sciscenti, F., Agostini, V., Rizzi, L., Lanotte, M., & Ghislieri, M. (2025). ML-STIM: Machine Learning for SubThalamic nucleus Intraoperative Mapping (1.0.0) [Dataset]. [Zenodo](https://doi.org/10.5281/zenodo.14894226).
 
 ##  How to contribute to ```ML-STIM```
 Contributions are the heart of the open-source community, making it a fantastic space for learning, inspiration, and innovation. While we've done our best, our code may contain inaccuracies or might not fully meet your needs. If you come across any issues—or have ideas for improvements—we encourage you to contribute! Follow the instructions below to suggest edits or enhancements. Every contribution is **greatly appreciated**!
