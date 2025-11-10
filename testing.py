@@ -113,7 +113,7 @@ def tabulate_results(predictions, dts, meta):
 def process_recording(model, recording, fsamp, b, a):
     if fsamp != 24000:
         num_samples = int(recording.shape[0] * 24000 / fsamp)
-        artifact_free_data = resample(recording, num_samples)
+        recording = resample(recording, num_samples)
         fsamp = 24000
     start_time = time.time()
     filtered_data = lib.filter_data(recording, b, a)
@@ -160,7 +160,7 @@ raw_data, clss, lens, meta = load_data(filepath, metapath)
 # Initialize filter coefficients
 # ------------------------------
 fsamp = 24000 # adjust sampling frequency if needed
-b, a = lib.initialize_filter_coefficients(fsamp)
+b, a = lib.initialize_filter_coefficients(24000)
 
 # Initialize empty dataframes that will store the results
 # ---------------------------------------------------------
